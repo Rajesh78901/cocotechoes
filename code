@@ -1,0 +1,80 @@
+import java.util.*;
+
+public class sales{
+
+    public static void main(String[] args) {
+        // Constants
+        int days_month = 30;
+        int days_quarter = days_month * 3;
+        int total_days_year = 365;
+        int price_min = 20;
+        int price_max = 30;
+        int unit_min = 100;
+        int unit_max = 1000;
+
+    //random object
+        Random random = new Random();
+
+        // Sales data 
+        double[] salesData = new double[total_days_year];
+
+        // random sales each day
+        for (int i = 0; i < total_days_year; i++) {
+            double price = price_min + (price_max - price_min) * random.nextDouble();
+            int units = unit_min + random.nextInt(unit_max - unit_min + 1);
+            salesData[i] = units * price;
+        }
+
+        // Calculate and display monthly and quarterly totals
+        calculateAndDisplayTotals(salesData, days_month, "Monthly");
+        calculateAndDisplayTotals(salesData, days_quarter, "Quarterly");
+
+        // Find the quarter with the maximum sales in terms of amount
+        int maxAmountQuarter = findMaxQuarter(salesData, days_quarter);
+        System.out.println("Quarter with Maximum Sales (Amount): " + maxAmountQuarter);
+
+        // Find the quarter with the maximum sales in terms of units
+        int maxUnitsQuarter = findMaxQuarter(salesData, days_quarter, true);
+        System.out.println("Quarter with Maximum Sales (Units): " + maxUnitsQuarter);
+    }
+
+    private static void calculateAndDisplayTotals(double[] salesData, int daysInPeriod, String periodType) {
+        int numPeriods = salesData.length / daysInPeriod;
+
+        for (int i = 0; i < numPeriods; i++) {
+            double periodTotalAmount = Arrays.stream(salesData, i * daysInPeriod, (i + 1) * daysInPeriod).sum();
+            double periodTotalUnits = Arrays.stream(salesData, i * daysInPeriod, (i + 1) * daysInPeriod)
+                    .map(d -> d / ((int) (d * 1000) / 1000.0))
+                    .sum();
+
+            System.out.println(periodType + " " + (i + 1) + ": Units Sold = " + periodTotalUnits +
+                    ", Amount = " + periodTotalAmount);
+        }
+    }
+
+    private static int findMaxQuarter(double[] salesData, int days_quarter) {
+        return findMaxQuarter(salesData, days_quarter, false);
+    }
+
+    private static int findMaxQuarter(double[] salesData, int days_quarter, boolean byUnits) {
+        int numQuarters = salesData.length / days_quarter;
+        double[] quarterTotals = new double[numQuarters];
+
+        for (int i = 0; i < numQuarters; i++) {
+            double[] quarterData = Arrays.copyOfRange(salesData, i * days_quarter, (i + 1) * days_quarter);
+            quarterTotals[i] = byUnits ?
+                    Arrays.stream(quarterData).map(d -> d / ((int) (d * 1000) / 1000.0)).sum() :
+                    Arrays.stream(quarterData).sum();
+        }
+
+        // Find the index of the quarter with the maximum total
+        int maxQuarterIndex = 0;
+        for (int i = 1; i < numQuarters; i++) {
+            if (quarterTotals[i] > quarterTotals[maxQuarterIndex]) {
+                maxQuarterIndex = i;
+            }
+        }
+
+        return maxQuarterIndex + 1;
+    }
+}
